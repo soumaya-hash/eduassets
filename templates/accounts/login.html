@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block auth_content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4>Connexion à EduAssets</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Se connecter</button>
+                        </div>
+                    </form>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'password_reset' %}">Mot de passe oublié ?</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

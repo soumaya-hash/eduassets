@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord{% endblock %}
+{% block content %}
+<h1>Bienvenue sur EduAssets</h1>
+<p>Vous êtes connecté en tant que {{ user.get_role_display }}.</p>
+{% endblock %}
