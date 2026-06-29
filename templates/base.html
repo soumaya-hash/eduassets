@@ -43,7 +43,7 @@
                         </li>
                         {% if user.role == 'ADMIN' or user.role == 'RESP_FIN' %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Factures</a>
+                            <a class="nav-link" href="{% url 'liste_factures' %}">Factures</a>
                         </li>
                         {% endif %}
                         {% if user.role == 'ADMIN' or user.role == 'RESP_INFO' %}

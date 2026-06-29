@@ -1,6 +1,43 @@
 {% extends 'base.html' %}
 {% block title %}Tableau de bord{% endblock %}
 {% block content %}
-<h1>Bienvenue sur EduAssets</h1>
-<p>Vous êtes connecté en tant que {{ user.get_role_display }}.</p>
+<h1>Tableau de bord</h1>
+{% if user.role == 'ADMIN' or user.role == 'RESP_FIN' %}
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ total_factures }}</h5>
+                <p class="card-text">Total factures</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ factures_payees }}</h5>
+                <p class="card-text">Payées</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ factures_impayees }}</h5>
+                <p class="card-text">Impayées / En retard</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ total_montant|floatformat:2 }} DH</h5>
+                <p class="card-text">Montant total</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<p>Bienvenue sur EduAssets. Utilisez le menu pour naviguer.</p>
+{% endif %}
 {% endblock %}
