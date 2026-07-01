@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer un équipement{% endblock %}
+{% block content %}
+<h1>Supprimer l'équipement</h1>
+<p>Voulez-vous vraiment supprimer <strong>{{ equipement.designation }} ({{ equipement.numero_inventaire }})</strong> ?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirmer</button>
+    <a href="{% url 'liste_equipements' %}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}

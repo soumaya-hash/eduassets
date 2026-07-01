@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'accounts.middleware.CurrentUserMiddleware',
+    'accounts.middleware.RoleSessionMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -65,6 +66,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
+                'accounts.context_processors.selected_role_display',
                 'django.contrib.messages.context_processors.messages',
             ],
         },

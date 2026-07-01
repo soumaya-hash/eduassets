@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Sélection du rôle{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h4 mb-3">Choisissez votre rôle</h1>
+                    <p>Sélectionnez le rôle que vous souhaitez utiliser pour cette session.</p>
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Rôle</label>
+                            <select id="role" name="role" class="form-select" required>
+                                <option value="">-- Sélectionner un rôle --</option>
+                                {% for value, label in roles %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Valider</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

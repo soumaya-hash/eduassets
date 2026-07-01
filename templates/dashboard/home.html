@@ -2,7 +2,7 @@
 {% block title %}Tableau de bord{% endblock %}
 {% block content %}
 <h1>Tableau de bord</h1>
-{% if user.role == 'ADMIN' or user.role == 'RESP_FIN' %}
+{% if selected_role == 'ADMIN' or selected_role == 'RESP_FIN' %}
 <div class="row mt-4">
     <div class="col-md-3">
         <div class="card text-white bg-primary mb-3">
@@ -39,5 +39,42 @@
 </div>
 {% else %}
 <p>Bienvenue sur EduAssets. Utilisez le menu pour naviguer.</p>
+{% endif %}
+{% if selected_role == 'ADMIN' or selected_role == 'RESP_INFO' %}
+<h3 class="mt-5">Parc Informatique</h3>
+<div class="row mt-3">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ total_equipements }}</h5>
+                <p class="card-text">Total équipements</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ fonctionnels }}</h5>
+                <p class="card-text">Fonctionnels</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ en_maintenance }}</h5>
+                <p class="card-text">En maintenance</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ hors_service }}</h5>
+                <p class="card-text">Hors service</p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endif %}
 {% endblock %}

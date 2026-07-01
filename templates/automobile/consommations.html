@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Consommations{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Consommations</h1>
+    <a href="{% url 'ajouter_consommation' %}" class="btn btn-primary">+ Nouvelle consommation</a>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Véhicule</th>
+            <th>Date</th>
+            <th>Quantité</th>
+            <th>Coût</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for consommation in consommations %}
+        <tr>
+            <td>{{ consommation.vehicule }}</td>
+            <td>{{ consommation.date }}</td>
+            <td>{{ consommation.quantite_litres }} L</td>
+            <td>{{ consommation.cout }} DH</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center">Aucune consommation.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
