@@ -1,80 +1,306 @@
 {% extends 'base.html' %}
 {% block title %}Tableau de bord{% endblock %}
 {% block content %}
-<h1>Tableau de bord</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="dashboard-title"><i class="fas fa-chart-line"></i> Tableau de bord</h1>
+</div>
+
 {% if selected_role == 'ADMIN' or selected_role == 'RESP_FIN' %}
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ total_factures }}</h5>
-                <p class="card-text">Total factures</p>
+<div class="mb-5">
+    <h3 class="dashboard-title"><i class="fas fa-file-invoice"></i> Factures</h3>
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                    <h5 class="card-title">{{ total_factures }}</h5>
+                    <p class="card-text">Total factures</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <h5 class="card-title">{{ factures_payees }}</h5>
+                    <p class="card-text">Payées</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    <h5 class="card-title">{{ factures_impayees }}</h5>
+                    <p class="card-text">Impayées / En retard</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <h5 class="card-title">{{ total_montant|floatformat:2 }} DH</h5>
+                    <p class="card-text">Montant total</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ factures_payees }}</h5>
-                <p class="card-text">Payées</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ factures_impayees }}</h5>
-                <p class="card-text">Impayées / En retard</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ total_montant|floatformat:2 }} DH</h5>
-                <p class="card-text">Montant total</p>
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Distribution des Factures</h5>
+                    <canvas id="factureChart" style="max-height: 300px;"></canvas>
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% else %}
-<p>Bienvenue sur EduAssets. Utilisez le menu pour naviguer.</p>
+<p class="alert alert-info"><i class="fas fa-info-circle"></i> Bienvenue sur EduAssets. Utilisez le menu pour naviguer.</p>
 {% endif %}
+
 {% if selected_role == 'ADMIN' or selected_role == 'RESP_INFO' %}
-<h3 class="mt-5">Parc Informatique</h3>
-<div class="row mt-3">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ total_equipements }}</h5>
-                <p class="card-text">Total équipements</p>
+<div class="mb-5">
+    <h3 class="dashboard-title"><i class="fas fa-laptop"></i> Parc Informatique</h3>
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-server"></i></div>
+                    <h5 class="card-title">{{ total_equipements }}</h5>
+                    <p class="card-text">Total équipements</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
+                    <h5 class="card-title">{{ fonctionnels }}</h5>
+                    <p class="card-text">Fonctionnels</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-tools"></i></div>
+                    <h5 class="card-title">{{ en_maintenance }}</h5>
+                    <p class="card-text">En maintenance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-ban"></i></div>
+                    <h5 class="card-title">{{ hors_service }}</h5>
+                    <p class="card-text">Hors service</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ fonctionnels }}</h5>
-                <p class="card-text">Fonctionnels</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ en_maintenance }}</h5>
-                <p class="card-text">En maintenance</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ hors_service }}</h5>
-                <p class="card-text">Hors service</p>
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">État des Équipements</h5>
+                    <canvas id="equipementChart" style="max-height: 300px;"></canvas>
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% endif %}
+
+{% if selected_role == 'ADMIN' or selected_role == 'RESP_AUTO' %}
+<div class="mb-5">
+    <h3 class="dashboard-title"><i class="fas fa-car"></i> Parc Automobile</h3>
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-car"></i></div>
+                    <h5 class="card-title">{{ total_vehicules }}</h5>
+                    <p class="card-text">Total véhicules</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <h5 class="card-title">{{ total_kilometrage|floatformat:0 }} km</h5>
+                    <p class="card-text">Kilométrage total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-gas-pump"></i></div>
+                    <h5 class="card-title">{{ total_carburant_litres|floatformat:2 }} L</h5>
+                    <p class="card-text">Consommation totale</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-money-bill"></i></div>
+                    <h5 class="card-title">{{ total_carburant_cout|floatformat:2 }} DH</h5>
+                    <p class="card-text">Coût carburant</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if selected_role == 'ADMIN' or selected_role == 'RESP_INFO' or selected_role == 'RESP_AUTO' %}
+<div class="mb-5">
+    <h3 class="dashboard-title"><i class="fas fa-wrench"></i> Maintenance</h3>
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <h5 class="card-title">{{ total_maintenances }}</h5>
+                    <p class="card-text">Total maintenances</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <h5 class="card-title">{{ maintenances_planifiees }}</h5>
+                    <p class="card-text">Planifiées</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-spinner"></i></div>
+                    <h5 class="card-title">{{ maintenances_en_cours }}</h5>
+                    <p class="card-text">En cours</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-check"></i></div>
+                    <h5 class="card-title">{{ maintenances_terminees }}</h5>
+                    <p class="card-text">Terminées</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Statut des Maintenances</h5>
+                    <canvas id="maintenanceChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-white bg-dark mb-3">
+                <div class="card-body text-center">
+                    <div class="stat-icon"><i class="fas fa-euro-sign"></i></div>
+                    <h5 class="card-title">{{ total_maintenance_cout|floatformat:2 }} DH</h5>
+                    <p class="card-text">Coût total des maintenances</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+    // Facture Chart
+    {% if facture_chart_data %}
+    const factureCtx = document.getElementById('factureChart').getContext('2d');
+    new Chart(factureCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ facture_chart_data.labels|safe }},
+            datasets: [{
+                data: {{ facture_chart_data.data|safe }},
+                backgroundColor: {{ facture_chart_data.backgroundColor|safe }},
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Equipement Chart
+    {% if equipement_chart_data %}
+    const equipementCtx = document.getElementById('equipementChart').getContext('2d');
+    new Chart(equipementCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ equipement_chart_data.labels|safe }},
+            datasets: [{
+                data: {{ equipement_chart_data.data|safe }},
+                backgroundColor: {{ equipement_chart_data.backgroundColor|safe }},
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Maintenance Chart
+    {% if maintenance_chart_data %}
+    const maintenanceCtx = document.getElementById('maintenanceChart').getContext('2d');
+    new Chart(maintenanceCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ maintenance_chart_data.labels|safe }},
+            datasets: [{
+                data: {{ maintenance_chart_data.data|safe }},
+                backgroundColor: {{ maintenance_chart_data.backgroundColor|safe }},
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}
 {% endblock %}
