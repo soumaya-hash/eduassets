@@ -6,6 +6,9 @@ class VehiculeForm(forms.ModelForm):
     class Meta:
         model = Vehicule
         fields = ['matricule', 'marque', 'modele', 'annee', 'kilometrage', 'affectation']
+        labels = {
+            'affectation': "Etablissement d'affectation",
+        }
         widgets = {
             'matricule': forms.TextInput(attrs={'class': 'form-control'}),
             'marque': forms.TextInput(attrs={'class': 'form-control'}),
