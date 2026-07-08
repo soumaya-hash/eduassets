@@ -122,11 +122,6 @@
                                 <a class="nav-link" href="{% url 'liste_vehicules' %}">Parc Automobile</a>
                             </li>
                             {% endif %}
-                            {% if selected_role == 'ADMIN' or selected_role == 'RESP_INFO' or selected_role == 'RESP_AUTO' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'liste_maintenances' %}">Maintenance</a>
-                            </li>
-                            {% endif %}
                         {% endwith %}
                     </ul>
                 </div>

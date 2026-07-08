@@ -29,10 +29,18 @@ def liste_maintenances(request):
         maintenances = maintenances.filter(
             Q(description__icontains=recherche) |
             Q(type_cible__icontains=recherche) |
-            Q(technicien__icontains=recherche)
+            Q(statut__icontains=recherche)
         )
 
-    return render(request, 'maintenance/liste.html', {'maintenances': maintenances, 'recherche': recherche, 'cible': cible})
+    return render(request, 'maintenance/liste.html', {
+        'maintenances': maintenances,
+        'recherche': recherche,
+        'cible': cible,
+        'page_title': 'Maintenances',
+        'add_url_name': 'ajouter_maintenance',
+        'edit_url_name': 'modifier_maintenance',
+        'delete_url_name': 'supprimer_maintenance',
+    })
 
 @login_required
 @role_required(['ADMIN', 'RESP_INFO', 'RESP_AUTO'])
@@ -51,7 +59,12 @@ def ajouter_maintenance(request):
             return redirect('liste_maintenances')
     else:
         form = MaintenanceForm()
-    return render(request, 'maintenance/form.html', {'form': form, 'action': 'Ajouter'})
+    return render(request, 'maintenance/form.html', {
+        'form': form,
+        'action': 'Ajouter',
+        'page_title': 'Ajouter une maintenance',
+        'cancel_url_name': 'liste_maintenances',
+    })
 
 @login_required
 @role_required(['ADMIN', 'RESP_INFO', 'RESP_AUTO'])
@@ -69,7 +82,12 @@ def modifier_maintenance(request, pk):
             return redirect('liste_maintenances')
     else:
         form = MaintenanceForm(instance=maintenance)
-    return render(request, 'maintenance/form.html', {'form': form, 'action': 'Modifier'})
+    return render(request, 'maintenance/form.html', {
+        'form': form,
+        'action': 'Modifier',
+        'page_title': 'Modifier une maintenance',
+        'cancel_url_name': 'liste_maintenances',
+    })
 
 @login_required
 @role_required(['ADMIN', 'RESP_INFO', 'RESP_AUTO'])
@@ -83,4 +101,8 @@ def supprimer_maintenance(request, pk):
         maintenance.delete()
         messages.success(request, 'Maintenance supprimée.')
         return redirect('liste_maintenances')
-    return render(request, 'maintenance/supprimer.html', {'maintenance': maintenance})
+    return render(request, 'maintenance/supprimer.html', {
+        'maintenance': maintenance,
+        'page_title': 'Supprimer une maintenance',
+        'cancel_url_name': 'liste_maintenances',
+    })

@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Supprimer une maintenance{% endblock %}
+{% block title %}{{ page_title|default:'Supprimer une maintenance' }}{% endblock %}
 {% block content %}
-<h1>Supprimer la maintenance</h1>
+<h1>{{ page_title|default:'Supprimer la maintenance' }}</h1>
 <p>Confirmez-vous la suppression de cette intervention ?</p>
 <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Supprimer</button>
-    <a href="{% url 'liste_maintenances' %}" class="btn btn-secondary">Annuler</a>
+    <a href="{% url cancel_url_name|default:'liste_maintenances' %}" class="btn btn-secondary">Annuler</a>
 </form>
 {% endblock %}

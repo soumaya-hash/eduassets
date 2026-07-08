@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q
 from .models import Vehicule, ConsommationCarburant
 from .forms import VehiculeForm, ConsommationCarburantForm
 from accounts.decorators import role_required
+from maintenance.models import Maintenance
+from maintenance.forms import MaintenanceForm
 
 
 @login_required
@@ -14,9 +17,6 @@ def liste_vehicules(request):
     Only accessible to ADMIN and RESP_AUTO roles.
     """
     vehicules = Vehicule.objects.all().order_by('matricule')
-    type_filtre = request.GET.get('type')
-    if type_filtre:
-        vehicules = vehicules.filter(type_carburant=type_filtre)
     return render(request, 'automobile/liste.html', {'vehicules': vehicules})
 
 
@@ -79,7 +79,7 @@ def liste_consommations(request):
     Display fuel consumption records with optional filtering by vehicle.
     Only accessible to ADMIN and RESP_AUTO roles.
     """
-    consommations = ConsommationCarburant.objects.all().order_by('-date_ravitaillement')
+    consommations = ConsommationCarburant.objects.all().order_by('-date')
     vehicule_id = request.GET.get('vehicule')
     if vehicule_id:
         consommations = consommations.filter(vehicule_id=vehicule_id)
@@ -107,4 +107,104 @@ def ajouter_consommation(request):
     else:
         form = ConsommationCarburantForm()
     return render(request, 'automobile/form_consommation.html', {'form': form, 'action': 'Ajouter'})
+
+
+@login_required
+@role_required(['ADMIN', 'RESP_AUTO'])
+def liste_maintenances_auto(request):
+    """Liste des maintenances du parc automobile."""
+    maintenances = Maintenance.objects.filter(type_cible='AUTOMOBILE').select_related('vehicule').order_by('-date_intervention')
+    recherche = request.GET.get('recherche', '').strip()
+
+    if recherche:
+        maintenances = maintenances.filter(
+            Q(description__icontains=recherche) |
+            Q(statut__icontains=recherche) |
+            Q(vehicule__matricule__icontains=recherche) |
+            Q(vehicule__marque__icontains=recherche)
+        )
+
+    return render(request, 'maintenance/liste.html', {
+        'maintenances': maintenances,
+        'recherche': recherche,
+        'page_title': 'Maintenances Automobile',
+        'add_url_name': 'ajouter_maintenance_auto',
+        'edit_url_name': 'modifier_maintenance_auto',
+        'delete_url_name': 'supprimer_maintenance_auto',
+    })
+
+
+@login_required
+@role_required(['ADMIN', 'RESP_AUTO'])
+def ajouter_maintenance_auto(request):
+    """Ajouter une maintenance liée au parc automobile."""
+    if request.method == 'POST':
+        form = MaintenanceForm(request.POST)
+        form.fields.pop('equipement', None)
+        form.fields.pop('type_cible', None)
+        if form.is_valid():
+            maintenance = form.save(commit=False)
+            maintenance.type_cible = 'AUTOMOBILE'
+            maintenance.equipement = None
+            maintenance.cree_par = request.user
+            maintenance.save()
+            messages.success(request, 'Maintenance automobile ajoutée.')
+            return redirect('liste_maintenances_auto')
+    else:
+        form = MaintenanceForm()
+        form.fields.pop('equipement', None)
+        form.fields.pop('type_cible', None)
+
+    return render(request, 'maintenance/form.html', {
+        'form': form,
+        'action': 'Ajouter',
+        'page_title': 'Ajouter une maintenance automobile',
+        'cancel_url_name': 'liste_maintenances_auto',
+    })
+
+
+@login_required
+@role_required(['ADMIN', 'RESP_AUTO'])
+def modifier_maintenance_auto(request, pk):
+    """Modifier une maintenance liée au parc automobile."""
+    maintenance = get_object_or_404(Maintenance, pk=pk, type_cible='AUTOMOBILE')
+    if request.method == 'POST':
+        form = MaintenanceForm(request.POST, instance=maintenance)
+        form.fields.pop('equipement', None)
+        form.fields.pop('type_cible', None)
+        if form.is_valid():
+            maintenance = form.save(commit=False)
+            maintenance.type_cible = 'AUTOMOBILE'
+            maintenance.equipement = None
+            maintenance.save()
+            messages.success(request, 'Maintenance automobile modifiée.')
+            return redirect('liste_maintenances_auto')
+    else:
+        form = MaintenanceForm(instance=maintenance)
+        form.fields.pop('equipement', None)
+        form.fields.pop('type_cible', None)
+
+    return render(request, 'maintenance/form.html', {
+        'form': form,
+        'action': 'Modifier',
+        'page_title': 'Modifier une maintenance automobile',
+        'cancel_url_name': 'liste_maintenances_auto',
+    })
+
+
+@login_required
+@role_required(['ADMIN', 'RESP_AUTO'])
+def supprimer_maintenance_auto(request, pk):
+    """Supprimer une maintenance liée au parc automobile."""
+    maintenance = get_object_or_404(Maintenance, pk=pk, type_cible='AUTOMOBILE')
+    if request.method == 'POST':
+        maintenance.delete()
+        messages.success(request, 'Maintenance automobile supprimée.')
+        return redirect('liste_maintenances_auto')
+
+    return render(request, 'maintenance/supprimer.html', {
+        'maintenance': maintenance,
+        'page_title': 'Supprimer une maintenance automobile',
+        'cancel_url_name': 'liste_maintenances_auto',
+    })
 
