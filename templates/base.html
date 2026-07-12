@@ -61,38 +61,19 @@
     {% if user.is_authenticated %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container-fluid">
-            <a class="navbar-brand fw-semibold" href="{% url 'dashboard' %}">EduAssets</a>
+            <div class="d-flex align-items-center">
+                <a class="navbar-brand fw-semibold mb-0" href="{% url 'dashboard' %}">EduAssets</a>
+                <a class="btn btn-outline-light btn-sm ms-2" href="{% url 'select_role' %}">Changer de périmètre</a>
+            </div>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            {{ user.get_full_name|default:user.username }} ({{ selected_role_display|default:user.get_role_display }})
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'profile' %}">Mon profil</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Changer de rôle</h6></li>
-                            <li>
-                                <form method="post" action="{% url 'change_role' %}" style="margin: 0;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="next" value="{{ request.path }}">
-                                    <select name="role" class="form-select form-select-sm mx-2" onchange="this.parentElement.submit();">
-                                        <option value="">-- Choisir un rôle --</option>
-                                        {% with selected_role=selected_role|default:user.role %}
-                                            <option value="ADMIN" {% if selected_role == 'ADMIN' %}selected{% endif %}>Administrateur Général</option>
-                                            <option value="RESP_FIN" {% if selected_role == 'RESP_FIN' %}selected{% endif %}>Responsable Financier</option>
-                                            <option value="RESP_INFO" {% if selected_role == 'RESP_INFO' %}selected{% endif %}>Responsable Parc Informatique</option>
-                                            <option value="RESP_AUTO" {% if selected_role == 'RESP_AUTO' %}selected{% endif %}>Responsable Parc Automobile</option>
-                                        {% endwith %}
-                                    </select>
-                                </form>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">Déconnexion</a></li>
-                        </ul>
+                    <li class="nav-item">
+                        <span class="nav-link text-white">
+                            {{ user.get_full_name|default:user.username }} ({{ selected_access_level|default:user.niveau_acces }} / {{ selected_role_display|default:user.get_role_display }})
+                        </span>
                     </li>
                 </ul>
             </div>
@@ -107,6 +88,25 @@
                             <a class="nav-link" href="{% url 'dashboard' %}">Tableau de bord</a>
                         </li>
                         {% with selected_role=selected_role|default:user.role %}
+                            {% if selected_role == 'ADMIN' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'users_list' %}">Utilisateurs</a>
+                            </li>
+                            {% endif %}
+                            {% if selected_role == 'ETAB_RESP_CONSO' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'tableau_consumption_etablissement' %}">Mon espace consommation</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'saisie_consommation_liste' %}">Mes saisies</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'factures_etablissement' %}">Mes factures</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'alertes_etablissement' %}">Mes alertes</a>
+                            </li>
+                            {% endif %}
                             {% if selected_role == 'ADMIN' or selected_role == 'RESP_FIN' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'liste_factures' %}">Factures</a>
@@ -117,9 +117,30 @@
                                 <a class="nav-link" href="{% url 'liste_equipements' %}">Parc Informatique</a>
                             </li>
                             {% endif %}
+                            {% if selected_role == 'DP_RESP_INFO' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'liste_equipements' %}">Parc Informatique DP</a>
+                            </li>
+                            {% endif %}
+                            {% if selected_role == 'DP_RESP_FIN' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'liste_factures' %}">Factures DP</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'saisies_a_controler_dp' %}">Saisies à contrôler</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'alertes_dp' %}">Alertes DP</a>
+                            </li>
+                            {% endif %}
                             {% if selected_role == 'ADMIN' or selected_role == 'RESP_AUTO' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'liste_vehicules' %}">Parc Automobile</a>
+                            </li>
+                            {% endif %}
+                            {% if selected_role == 'DP_RESP_AUTO' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'liste_vehicules' %}">Parc Automobile DP</a>
                             </li>
                             {% endif %}
                         {% endwith %}

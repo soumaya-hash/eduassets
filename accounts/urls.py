@@ -5,8 +5,13 @@ from . import views
 urlpatterns = [
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('profile/', views.profile, name='profile'),
+    path('users/', views.users_list, name='users_list'),
+    path('users/create/', views.user_create, name='user_create'),
+    path('users/<int:pk>/edit/', views.user_update, name='user_update'),
+    path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
     path('select_role/', views.select_role, name='select_role'),
     path('change_role/', views.change_session_role, name='change_role'),
+    path('reset_access_context/', views.reset_access_context, name='reset_access_context'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name='accounts/password_reset.html'

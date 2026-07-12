@@ -15,7 +15,11 @@
             <form method="post" class="row g-3">
                 {% csrf_token %}
                 <div class="col-md-6">
-                    <label class="form-label">Nom d'utilisateur</label>
+                    <label class="form-label">CIN</label>
+                    <input type="text" class="form-control" value="{{ user.cin|default:'Non renseigné' }}" disabled>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Nom d'utilisateur technique</label>
                     <input type="text" class="form-control" value="{{ user.username }}" disabled>
                 </div>
                 <div class="col-md-6">

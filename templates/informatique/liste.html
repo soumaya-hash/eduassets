@@ -8,21 +8,48 @@
         <a href="{% url 'ajouter_equipement' %}" class="btn btn-primary">+ Nouvel équipement</a>
     </div>
 </div>
+
+<!-- Barre de filtres unifiée -->
 <div class="row g-2 align-items-end mb-3">
-    <div class="col-md-6">
+    <!-- Recherche -->
+    <div class="col-md-4">
         <form method="get" class="d-flex gap-2">
-            <input type="text" name="recherche" class="form-control" placeholder="Rechercher un équipement..." value="{{ recherche }}">
+            <input type="text" name="recherche" class="form-control" placeholder="Rechercher..." value="{{ recherche }}">
+            <!-- On conserve les autres filtres dans des champs cachés -->
             {% if etat %}<input type="hidden" name="etat" value="{{ etat }}">{% endif %}
+            {% if designation %}<input type="hidden" name="designation" value="{{ designation }}">{% endif %}
             <button type="submit" class="btn btn-outline-primary">Rechercher</button>
         </form>
     </div>
-    <div class="col-md-6 d-flex flex-wrap gap-2">
-        <a href="?{% if recherche %}recherche={{ recherche }}&{% endif %}etat=FONCTIONNEL" class="btn btn-outline-success btn-sm">Fonctionnels</a>
-        <a href="?{% if recherche %}recherche={{ recherche }}&{% endif %}etat=EN_MAINTENANCE" class="btn btn-outline-warning btn-sm">En maintenance</a>
-        <a href="?{% if recherche %}recherche={{ recherche }}&{% endif %}etat=HORS_SERVICE" class="btn btn-outline-danger btn-sm">Hors service</a>
-        <a href="?{% if recherche %}recherche={{ recherche }}{% endif %}" class="btn btn-outline-secondary btn-sm">Tous</a>
+
+    <!-- Filtre par désignation -->
+    <div class="col-md-3">
+        <form method="get" class="d-flex gap-2">
+            <select name="designation" class="form-select">
+                <option value="">Toutes désignations</option>
+                {% for code, label in designation_choices %}
+                    <option value="{{ code }}" {% if designation == code %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+            <!-- On conserve les autres filtres -->
+            {% if recherche %}<input type="hidden" name="recherche" value="{{ recherche }}">{% endif %}
+            {% if etat %}<input type="hidden" name="etat" value="{{ etat }}">{% endif %}
+            <button type="submit" class="btn btn-outline-primary">Filtrer</button>
+        </form>
+    </div>
+
+    <!-- Filtres par état (boutons) -->
+    <div class="col-md-5 d-flex flex-wrap gap-2 justify-content-end">
+        <a href="?{% if recherche %}recherche={{ recherche }}&{% endif %}{% if designation %}designation={{ designation }}&{% endif %}etat=FONCTIONNEL" class="btn btn-outline-success btn-sm">Fonctionnels</a>
+        <a href="?{% if recherche %}recherche={{ recherche }}&{% endif %}{% if designation %}designation={{ designation }}&{% endif %}etat=EN_MAINTENANCE" class="btn btn-outline-warning btn-sm">En maintenance</a>
+        <a href="?{% if recherche %}recherche={{ recherche }}&{% endif %}{% if designation %}designation={{ designation }}&{% endif %}etat=HORS_SERVICE" class="btn btn-outline-danger btn-sm">Hors service</a>
+        <a href="?{% if recherche %}recherche={{ recherche }}&{% endif %}{% if designation %}designation={{ designation }}{% endif %}" class="btn btn-outline-secondary btn-sm">Tous</a>
     </div>
 </div>
+
+<!-- Tableau -->
 <table class="table table-striped table-hover">
     <thead class="table-dark">
         <tr>
@@ -39,7 +66,7 @@
         {% for eq in equipements %}
         <tr>
             <td>{{ eq.numero_inventaire }}</td>
-            <td>{{ eq.designation }}</td>
+            <td>{{ eq.get_designation_display }}</td>  <!-- ← Changement ici -->
             <td>{{ eq.marque }}</td>
             <td>{{ eq.modele }}</td>
             <td>{{ eq.etablissement.nom }}</td>

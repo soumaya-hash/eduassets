@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard DP{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="dashboard-title mb-0">Tableau de bord Direction Provinciale</h1>
+    <a href="{% url 'export_dp_mensuel' %}" class="btn btn-outline-primary">Exporter le récapitulatif mensuel</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-2"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ total_etablissements }}</h4><div>Établissements</div></div></div></div>
+    <div class="col-md-2"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ total_compteurs }}</h4><div>Compteurs</div></div></div></div>
+    <div class="col-md-2"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ saisies_mois }}</h4><div>Saisies du mois</div></div></div></div>
+    <div class="col-md-2"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ alertes_dp }}</h4><div>Alertes</div></div></div></div>
+    <div class="col-md-2"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ factures_impayees }}</h4><div>Impayées</div></div></div></div>
+    <div class="col-md-2"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ factures_totales }}</h4><div>Factures</div></div></div></div>
+</div>
+
+{% if selected_role == 'DP_RESP_FIN' or selected_role == 'ADMIN' %}
+<div class="mb-4">
+    <h2 class="h4 mb-3">Éléments à traiter</h2>
+    <div class="row g-3">
+        <div class="col-md-4"><div class="card border-warning h-100"><div class="card-body"><h3>{{ saisies_a_controler }}</h3><p class="mb-3">Saisies à contrôler</p><a href="{% url 'saisies_a_controler_dp' %}" class="btn btn-sm btn-outline-warning">Contrôler</a></div></div></div>
+        <div class="col-md-4"><div class="card border-danger h-100"><div class="card-body"><h3>{{ factures_en_retard }}</h3><p class="mb-3">Factures en retard</p><a href="{% url 'liste_factures' %}?statut=EN_RETARD" class="btn btn-sm btn-outline-danger">Consulter</a></div></div></div>
+        <div class="col-md-4"><div class="card border-primary h-100"><div class="card-body"><h3>{{ alertes_non_traitees }}</h3><p class="mb-3">Alertes non traitées</p><a href="{% url 'alertes_dp' %}" class="btn btn-sm btn-outline-primary">Traiter</a></div></div></div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Compteurs sans saisie ce mois</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr><th>Établissement</th><th>Compteur</th><th>Type</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for compteur in compteurs_non_saisis %}
+                            <tr>
+                                <td>{{ compteur.etablissement.nom }}</td>
+                                <td>{{ compteur.libelle }}</td>
+                                <td>{{ compteur.get_type_compteur_display }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center">Aucun compteur en attente.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Alertes récentes</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr><th>Établissement</th><th>Niveau</th><th>Type</th><th>Traitée</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for alerte in recent_alertes %}
+                            <tr>
+                                <td>{{ alerte.etablissement.nom }}</td>
+                                <td>{{ alerte.get_niveau_alerte_display }}</td>
+                                <td>{{ alerte.get_type_alerte_display }}</td>
+                                <td>{% if alerte.traitee %}Oui{% else %}Non{% endif %}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center">Aucune alerte.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Factures récentes</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr><th>Réf.</th><th>Établissement</th><th>Montant</th><th>Statut</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for facture in recent_factures %}
+                            <tr>
+                                <td>{{ facture.reference }}</td>
+                                <td>{{ facture.etablissement.nom }}</td>
+                                <td>{{ facture.montant }}</td>
+                                <td>{{ facture.get_statut_display }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center">Aucune facture.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Factures et saisies</h5>
+                <p class="mb-2">Total factures: <strong>{{ factures_totales }}</strong></p>
+                <p class="mb-2">Montant total: <strong>{{ factures_montant_total|floatformat:2 }} DH</strong></p>
+                <p class="mb-0">Saisies enregistrées: <strong>{{ saisies_mois }}</strong> ce mois.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if selected_role == 'DP_RESP_INFO' or selected_role == 'ADMIN' %}
+<div class="row g-3 mt-2">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="card-title mb-0">Parc Informatique DP</h5>
+                    <a href="{% url 'liste_equipements' %}" class="btn btn-sm btn-outline-primary">Ouvrir</a>
+                </div>
+                <p class="mb-1">Équipements: <strong>{{ dp_total_equipements }}</strong></p>
+                <p class="mb-3">En maintenance: <strong>{{ dp_equipements_maintenance }}</strong></p>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Inventaire</th><th>Désignation</th><th>Établissement</th></tr></thead>
+                        <tbody>
+                            {% for eq in recent_equipements %}
+                            <tr>
+                                <td>{{ eq.numero_inventaire }}</td>
+                                <td>{{ eq.designation }}</td>
+                                <td>{{ eq.etablissement.nom }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center">Aucun équipement.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="card-title mb-0">Maintenance Informatique</h5>
+                    <a href="{% url 'liste_maintenances_info' %}" class="btn btn-sm btn-outline-secondary">Voir</a>
+                </div>
+                <p class="mb-0">Interventions: <strong>{{ dp_maintenances_info }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if selected_role == 'DP_RESP_AUTO' or selected_role == 'ADMIN' %}
+<div class="row g-3 mt-2">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="card-title mb-0">Parc Automobile DP</h5>
+                    <a href="{% url 'liste_vehicules' %}" class="btn btn-sm btn-outline-primary">Ouvrir</a>
+                </div>
+                <p class="mb-1">Véhicules: <strong>{{ dp_total_vehicules }}</strong></p>
+                <p class="mb-1">Missions: <strong>{{ dp_missions }}</strong></p>
+                <p class="mb-1">Carburant total: <strong>{{ dp_total_carburant_litres|floatformat:2 }} L</strong></p>
+                <p class="mb-3">Coût carburant: <strong>{{ dp_total_carburant_cout|floatformat:2 }} DH</strong></p>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Immatriculation</th><th>Marque</th><th>Établissement</th></tr></thead>
+                        <tbody>
+                            {% for vehicule in recent_vehicules %}
+                            <tr>
+                                <td>{{ vehicule.matricule }}</td>
+                                <td>{{ vehicule.marque }}</td>
+                                <td>{{ vehicule.affectation.nom|default:'-' }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center">Aucun véhicule.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="card-title mb-0">Maintenance Automobile</h5>
+                    <a href="{% url 'liste_maintenances_auto' %}" class="btn btn-sm btn-outline-secondary">Voir</a>
+                </div>
+                <p class="mb-0">Interventions: <strong>{{ dp_maintenances_auto }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

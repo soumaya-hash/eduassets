@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer un utilisateur{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h1 class="h4 mb-3">Supprimer un utilisateur</h1>
+        <p>Confirmer la suppression de l'utilisateur <strong>{{ utilisateur.get_full_name|default:utilisateur.username }}</strong> ({{ utilisateur.cin|default:utilisateur.username }}) ?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+            <a href="{% url 'users_list' %}" class="btn btn-outline-secondary">Annuler</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

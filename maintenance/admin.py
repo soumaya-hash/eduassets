@@ -5,18 +5,21 @@ from .models import Maintenance
 @admin.register(Maintenance)
 class MaintenanceAdmin(admin.ModelAdmin):
     """Admin interface for maintenance tracking"""
-    list_display = ['get_asset_name', 'type_cible', 'date_intervention', 'statut', 'cree_par']
-    list_filter = ['type_cible', 'statut', 'date_intervention']
-    search_fields = ['description', 'equipement__designation', 'vehicule__matricule']
+    list_display = ['get_asset_name', 'type_cible', 'type_intervention', 'date_intervention', 'cout', 'statut', 'cree_par']
+    list_filter = ['type_cible', 'type_intervention', 'statut', 'date_intervention']
+    search_fields = ['description', 'lieu', 'reference_facture', 'equipement__designation', 'vehicule__matricule']
     readonly_fields = ['cree_par']
     date_hierarchy = 'date_intervention'
     
     fieldsets = (
         ('Maintenance', {
-            'fields': ['type_cible', 'description', 'equipement', 'vehicule']
+            'fields': ['type_cible', 'type_intervention', 'description', 'equipement', 'vehicule']
         }),
         ('Détails', {
-            'fields': ['date_intervention', 'cout', 'statut']
+            'fields': [
+                'date_intervention', 'lieu', 'kilometrage_intervention', 'cout', 'reference_facture',
+                'pieces_remplacees', 'prochaine_echeance', 'prochain_kilometrage', 'statut'
+            ]
         }),
         ('Suivi', {
             'fields': ['cree_par'],

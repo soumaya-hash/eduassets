@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Mon tableau de bord consommation{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="dashboard-title">{{ etablissement.nom }}</h1>
+        <p class="text-muted mb-0">Espace Responsable Consommation Établissement</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'saisie_consommation_creer' %}" class="btn btn-primary">+ Nouvelle saisie</a>
+        <a href="{% url 'saisie_consommation_liste' %}" class="btn btn-outline-primary">Historique</a>
+        <a href="{% url 'factures_etablissement' %}" class="btn btn-outline-secondary">Mes factures</a>
+        <a href="{% url 'alertes_etablissement' %}" class="btn btn-outline-danger">Mes alertes</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ compteurs.count }}</h4><div>Compteurs</div></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ saisies.count }}</h4><div>Saisies</div></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ factures_totales }}</h4><div>Factures</div></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ alertes.count }}</h4><div>Alertes</div></div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Dernière saisie</h5>
+                {% if derniere_saisie %}
+                    <p class="mb-1"><strong>Période:</strong> {{ derniere_saisie.mois }}/{{ derniere_saisie.annee }}</p>
+                    <p class="mb-1"><strong>Compteur:</strong> {{ derniere_saisie.compteur.libelle }}</p>
+                    <p class="mb-1"><strong>Quantité:</strong> {{ derniere_saisie.quantite_consommee }}</p>
+                    <p class="mb-0"><strong>Écart:</strong> {{ derniere_saisie.ecart_montant }}</p>
+                {% else %}
+                    <p class="text-muted mb-0">Aucune saisie enregistrée.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Résumé financier</h5>
+                <p class="mb-1">Factures payées: <strong>{{ factures_payees }}</strong></p>
+                <p class="mb-1">Factures impayées: <strong>{{ factures_impayees }}</strong></p>
+                <p class="mb-0">Total factures: <strong>{{ factures_totales }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Compteurs</h5>
+                <ul class="list-group list-group-flush">
+                    {% for compteur in compteurs %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ compteur.libelle }}</span>
+                        <small>{{ compteur.get_type_compteur_display }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center">Aucun compteur</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Saisies récentes</h5>
+                <ul class="list-group list-group-flush">
+                    {% for saisie in saisies %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ saisie.mois }}/{{ saisie.annee }}</span>
+                        <small>{{ saisie.compteur.libelle }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center">Aucune saisie</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Alertes récentes</h5>
+                <ul class="list-group list-group-flush">
+                    {% for alerte in alertes %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ alerte.get_type_alerte_display }}</span>
+                        <small>{{ alerte.get_niveau_alerte_display }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center">Aucune alerte</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

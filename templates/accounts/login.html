@@ -1,22 +1,93 @@
 {% extends 'base.html' %}
 {% block auth_content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white text-center">
-                    <h4>Connexion à EduAssets</h4>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Se connecter</button>
+<style>
+    .auth-shell {
+        min-height: 100vh;
+        background: radial-gradient(circle at top left, rgba(59,130,246,.28), transparent 35%), linear-gradient(135deg, #081226 0%, #0f172a 45%, #1e293b 100%);
+        display: flex;
+        align-items: center;
+        padding: 2rem 0;
+    }
+    .auth-panel {
+        border: 0;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+    }
+    .auth-visual {
+        background: linear-gradient(160deg, rgba(37,99,235,.95), rgba(14,116,144,.95));
+        color: #fff;
+        padding: 2.25rem;
+        min-height: 100%;
+    }
+    .auth-visual h1 { font-weight: 800; }
+    .auth-visual .pill {
+        display: inline-block;
+        border: 1px solid rgba(255,255,255,.28);
+        border-radius: 999px;
+        padding: .4rem .85rem;
+        margin: .25rem .35rem .25rem 0;
+        font-size: .9rem;
+    }
+    .auth-card {
+        background: #fff;
+        padding: 2rem;
+        min-height: 100%;
+    }
+</style>
+<div class="auth-shell">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10">
+                <div class="card auth-panel">
+                    <div class="row g-0">
+                        <div class="col-lg-6 auth-visual d-flex flex-column justify-content-between">
+                            <div>
+                                <p class="text-uppercase opacity-75 mb-2">EduAssets</p>
+                                <h1 class="display-6 mb-3">Plateforme de pilotage des ressources éducatives</h1>
+                                <p class="lead mb-4">EduAssets centralise le suivi des factures, des consommations, du parc informatique, du parc automobile et des opérations de maintenance pour les académies, les DP et les établissements.</p>
+                                <div class="mb-3">
+                                    <span class="pill">Académie</span>
+                                    <span class="pill">DP</span>
+                                    <span class="pill">Établissement</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 opacity-75">
+                                <small>Une application unique pour superviser les équipements, les coûts et les interventions dans tout le réseau éducatif.</small>
+                            </div>
                         </div>
-                    </form>
-                    <div class="mt-3 text-center">
-                        <a href="{% url 'password_reset' %}">Mot de passe oublié ?</a>
+                        <div class="col-lg-6">
+                            <div class="auth-card">
+                                <h2 class="h4 fw-bold mb-2">Se connecter</h2>
+                                <p class="text-muted mb-4">La connexion se fait désormais avec le CIN et le mot de passe, puis vous emmène vers la sélection du périmètre et du rôle.</p>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="id_username" class="form-label fw-semibold">{{ form.username.label }}</label>
+                                        {{ form.username }}
+                                        {% if form.username.errors %}
+                                        <div class="text-danger small mt-1">{{ form.username.errors|striptags }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="id_password" class="form-label fw-semibold">{{ form.password.label }}</label>
+                                        {{ form.password }}
+                                        {% if form.password.errors %}
+                                        <div class="text-danger small mt-1">{{ form.password.errors|striptags }}</div>
+                                        {% endif %}
+                                    </div>
+                                    {% if form.non_field_errors %}
+                                    <div class="alert alert-danger">{{ form.non_field_errors|striptags }}</div>
+                                    {% endif %}
+                                    <div class="d-grid mt-3">
+                                        <button type="submit" class="btn btn-primary btn-lg">Se connecter</button>
+                                    </div>
+                                </form>
+                                <div class="mt-3 text-center">
+                                    <a href="{% url 'password_reset' %}">Mot de passe oublié ?</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

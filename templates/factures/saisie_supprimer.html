@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer la saisie{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h1 class="h4 mb-3">Supprimer la saisie</h1>
+        <p>Confirmer la suppression de la saisie {{ saisie.mois }}/{{ saisie.annee }} pour {{ saisie.compteur.libelle }} ?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+            <a href="{% url 'saisie_consommation_liste' %}" class="btn btn-outline-secondary">Annuler</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

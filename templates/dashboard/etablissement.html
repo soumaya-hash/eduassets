@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Établissement{% endblock %}
+{% block content %}
+<h1 class="dashboard-title">{{ etablissement.nom|default:'Mon établissement' }}</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ compteurs_eau }}</h4><div>Compteurs eau</div></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ compteurs_electricite }}</h4><div>Compteurs électricité</div></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ saisies_mois }}</h4><div>Saisies du mois</div></div></div></div>
+    <div class="col-md-3"><div class="card shadow-sm"><div class="card-body text-center"><h4>{{ alertes_ouvertes }}</h4><div>Alertes ouvertes</div></div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary shadow-sm">
+            <div class="card-body text-center">
+                <h4>{{ factures_totales }}</h4>
+                <div>Factures</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success shadow-sm">
+            <div class="card-body text-center">
+                <h4>{{ factures_payees }}</h4>
+                <div>Payées</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger shadow-sm">
+            <div class="card-body text-center">
+                <h4>{{ factures_impayees }}</h4>
+                <div>Impayées / en retard</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-dark bg-warning shadow-sm">
+            <div class="card-body text-center">
+                <h4>{{ factures_montant_total|floatformat:2 }} DH</h4>
+                <div>Montant total</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Factures récentes</h5>
+                <ul class="list-group list-group-flush">
+                    {% for facture in recent_factures %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ facture.reference }}</span>
+                        <span>{{ facture.montant }} DH</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center">Aucune facture</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Saisies récentes</h5>
+                <ul class="list-group list-group-flush">
+                    {% for saisie in recent_saisies %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ saisie.compteur.libelle }}</span>
+                        <span>{{ saisie.quantite_consommee }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center">Aucune saisie</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">Alertes récentes</h5>
+                <ul class="list-group list-group-flush">
+                    {% for alerte in recent_alertes %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ alerte.get_type_alerte_display }}</span>
+                        <span>{{ alerte.get_niveau_alerte_display }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center">Aucune alerte</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

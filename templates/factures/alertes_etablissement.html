@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Mes alertes{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="dashboard-title">Mes alertes</h1>
+        <p class="text-muted mb-0">{{ etablissement.nom }}</p>
+    </div>
+    <a href="{% url 'tableau_consumption_etablissement' %}" class="btn btn-outline-secondary">Retour au tableau</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Niveau</th>
+                    <th>Type</th>
+                    <th>Compteur</th>
+                    <th>Message</th>
+                    <th>Traitee</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alerte in alertes %}
+                <tr>
+                    <td>{{ alerte.date_creation }}</td>
+                    <td>{{ alerte.get_niveau_alerte_display }}</td>
+                    <td>{{ alerte.get_type_alerte_display }}</td>
+                    <td>{% if alerte.compteur %}{{ alerte.compteur.libelle }}{% else %}-{% endif %}</td>
+                    <td>{{ alerte.message }}</td>
+                    <td>{% if alerte.traitee %}Oui{% else %}Non{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center">Aucune alerte.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

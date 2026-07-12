@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Mes factures{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="dashboard-title">Mes factures</h1>
+        <p class="text-muted mb-0">{{ etablissement.nom }}</p>
+    </div>
+    <a href="{% url 'tableau_consumption_etablissement' %}" class="btn btn-outline-secondary">Retour au tableau</a>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-6">
+        <a href="?statut=PAYEE" class="btn btn-outline-success btn-sm">Payées</a>
+        <a href="?statut=EN_ATTENTE" class="btn btn-outline-warning btn-sm">En attente</a>
+        <a href="?statut=EN_RETARD" class="btn btn-outline-danger btn-sm">En retard</a>
+        <a href="?" class="btn btn-outline-secondary btn-sm">Toutes</a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Référence</th>
+                    <th>Type</th>
+                    <th>Compteur</th>
+                    <th>Contrat</th>
+                    <th>Émission</th>
+                    <th>Échéance</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for facture in factures %}
+                <tr>
+                    <td>{{ facture.reference }}</td>
+                    <td>{{ facture.get_type_facture_display }}</td>
+                    <td>{% if facture.compteur %}{{ facture.compteur.libelle }}{% else %}-{% endif %}</td>
+                    <td>{{ facture.numero_contrat|default:'-' }}</td>
+                    <td>{{ facture.date_emission }}</td>
+                    <td>{{ facture.date_echeance }}</td>
+                    <td>{{ facture.montant }}</td>
+                    <td>{{ facture.get_statut_display }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center">Aucune facture.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

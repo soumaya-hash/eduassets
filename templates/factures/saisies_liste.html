@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Historique des saisies{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="dashboard-title">Historique des saisies</h1>
+        <p class="text-muted mb-0">{{ etablissement.nom }}</p>
+    </div>
+    <a href="{% url 'saisie_consommation_creer' %}" class="btn btn-primary">+ Nouvelle saisie</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Période</th>
+                    <th>Compteur</th>
+                    <th>Ancien index</th>
+                    <th>Nouveau index</th>
+                    <th>Quantité</th>
+                    <th>Théorique</th>
+                    <th>Fournisseur</th>
+                    <th>Écart</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for saisie in saisies %}
+                <tr>
+                    <td>{{ saisie.mois }}/{{ saisie.annee }}</td>
+                    <td>{{ saisie.compteur.libelle }}</td>
+                    <td>{{ saisie.ancien_index }}</td>
+                    <td>{{ saisie.nouvel_index }}</td>
+                    <td>{{ saisie.quantite_consommee }}</td>
+                    <td>{{ saisie.montant_theorique }}</td>
+                    <td>{{ saisie.montant_fournisseur }}</td>
+                    <td>{{ saisie.ecart_montant }}</td>
+                    <td>{{ saisie.get_statut_saisie_display }}</td>
+                    <td class="d-flex gap-2">
+                        <a href="{% url 'saisie_consommation_modifier' saisie.pk %}" class="btn btn-sm btn-outline-primary">Modifier</a>
+                        <a href="{% url 'saisie_consommation_supprimer' saisie.pk %}" class="btn btn-sm btn-outline-danger">Supprimer</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10" class="text-center">Aucune saisie trouvée.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

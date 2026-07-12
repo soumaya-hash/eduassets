@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="dashboard-title">{{ page_title }}</h1>
+        <p class="text-muted mb-0">Configurer l'identité, le rôle et le périmètre de l'utilisateur.</p>
+    </div>
+    <a href="{% url 'users_list' %}" class="btn btn-outline-secondary">Retour à la liste</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="{% if field.name == 'is_active' %}col-12{% else %}col-md-6{% endif %}">
+                {% if field.name == 'is_active' %}
+                <div class="form-check mt-4">
+                    {{ field }}
+                    <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                </div>
+                {% else %}
+                <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% endif %}
+                {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% if field.errors %}
+                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <div class="col-12 d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+                <a href="{% url 'users_list' %}" class="btn btn-outline-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

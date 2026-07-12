@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Vehicule, ConsommationCarburant
+from .models import Vehicule, ConsommationCarburant, Mission
 
 
 @admin.register(Vehicule)
@@ -43,4 +43,17 @@ class ConsommationCarburantAdmin(admin.ModelAdmin):
             'fields': ['date', 'quantite_litres', 'cout']
         }),
     )
+
+
+@admin.register(Mission)
+class MissionAdmin(admin.ModelAdmin):
+    list_display = ['reference_om', 'date_mission', 'vehicule', 'destination', 'conducteur', 'distance_parcourue', 'montant_carburant']
+    list_filter = ['date_mission', 'vehicule']
+    search_fields = ['reference_om', 'destination', 'conducteur', 'vehicule__matricule']
+    readonly_fields = ['distance_parcourue', 'cree_par', 'date_creation']
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.cree_par = request.user
+        super().save_model(request, obj, form, change)
 

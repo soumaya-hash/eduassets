@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Saisies à contrôler{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h1 class="dashboard-title mb-1">Saisies à contrôler</h1><p class="text-muted mb-0">Saisies validées par les établissements de votre DP.</p></div>
+    <a href="{% url 'dashboard_dp' %}" class="btn btn-outline-secondary">Retour au tableau de bord</a>
+</div>
+<div class="card shadow-sm"><div class="card-body table-responsive">
+<table class="table table-striped align-middle mb-0"><thead class="table-dark"><tr>
+    <th>Établissement</th><th>Compteur</th><th>Période</th><th>Consommation</th><th>Montant fournisseur</th><th>Action</th>
+</tr></thead><tbody>
+{% for saisie in saisies %}<tr>
+    <td>{{ saisie.etablissement.nom }}</td><td>{{ saisie.compteur.libelle }}</td><td>{{ saisie.mois }}/{{ saisie.annee }}</td>
+    <td>{{ saisie.quantite_consommee }}</td><td>{{ saisie.montant_fournisseur }} DH</td>
+    <td><form method="post" action="{% url 'controler_saisie_dp' saisie.pk %}">{% csrf_token %}<button class="btn btn-sm btn-success">Contrôler</button></form></td>
+</tr>{% empty %}<tr><td colspan="6" class="text-center">Aucune saisie en attente de contrôle.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

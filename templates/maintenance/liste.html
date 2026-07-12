@@ -18,8 +18,10 @@
         <tr>
             <th>Type</th>
             <th>Équipement / Véhicule</th>
+            <th>Intervention</th>
             <th>Description</th>
             <th>Date</th>
+            <th>Lieu</th>
             <th>Coût</th>
             <th>Statut</th>
             <th>Actions</th>
@@ -32,8 +34,10 @@
             <td>
                 {% if m.equipement %}{{ m.equipement.designation }}{% elif m.vehicule %}{{ m.vehicule.matricule }}{% else %}-{% endif %}
             </td>
+            <td>{{ m.get_type_intervention_display|default:'-' }}</td>
             <td>{{ m.description|truncatechars:50 }}</td>
             <td>{{ m.date_intervention }}</td>
+            <td>{{ m.lieu|default:'-' }}</td>
             <td>{{ m.cout|default:"-" }} DH</td>
             <td>{{ m.get_statut_display }}</td>
             <td>
@@ -42,7 +46,7 @@
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="text-center">Aucune maintenance.</td></tr>
+        <tr><td colspan="9" class="text-center">Aucune maintenance.</td></tr>
         {% endfor %}
     </tbody>
 </table>
