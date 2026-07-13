@@ -52,8 +52,8 @@ class EtablissementAdmin(admin.ModelAdmin):
 
 @admin.register(Compteur)
 class CompteurAdmin(admin.ModelAdmin):
-    list_display = ['libelle', 'etablissement', 'type_compteur', 'numero_contrat', 'code_compteur', 'actif']
-    list_filter = ['actif', 'type_compteur', 'etablissement__direction_provinciale']
+    list_display = ['libelle', 'fournisseur', 'etablissement', 'type_compteur', 'numero_contrat', 'code_compteur', 'actif']
+    list_filter = ['actif', 'fournisseur', 'type_compteur', 'etablissement__direction_provinciale']
     search_fields = ['libelle', 'numero_contrat', 'code_compteur', 'etablissement__nom']
 
 
@@ -76,15 +76,15 @@ class AlerteConsommationAdmin(admin.ModelAdmin):
 @admin.register(Facture)
 class FactureAdmin(admin.ModelAdmin):
     """Admin interface for invoice management"""
-    list_display = ['reference', 'etablissement', 'compteur', 'type_facture', 'montant', 'statut', 'date_emission', 'cree_par']
-    list_filter = ['statut', 'type_facture', 'date_emission', 'etablissement', 'compteur']
+    list_display = ['reference', 'etablissement', 'fournisseur', 'compteur', 'type_facture', 'montant', 'statut', 'date_emission', 'cree_par']
+    list_filter = ['statut', 'fournisseur', 'type_facture', 'date_emission', 'etablissement', 'compteur']
     search_fields = ['reference', 'numero_contrat', 'etablissement__nom', 'compteur__libelle']
     readonly_fields = ['cree_par', 'date_creation']
     date_hierarchy = 'date_emission'
 
     fieldsets = (
         ('Facture', {
-            'fields': ['reference', 'type_facture', 'etablissement', 'compteur', 'numero_contrat', 'montant']
+            'fields': ['reference', 'type_facture', 'etablissement', 'fournisseur', 'compteur', 'numero_contrat', 'montant']
         }),
         ('Dates', {
             'fields': ['date_emission', 'date_echeance']

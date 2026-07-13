@@ -3,7 +3,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
-from factures.models import Academie, DirectionProvinciale, Etablissement
+from factures.models import DirectionProvinciale, Etablissement
 
 from .models import User
 
@@ -56,7 +56,7 @@ class UserManagementForm(forms.ModelForm):
         model = User
         fields = [
             'cin', 'first_name', 'last_name', 'email', 'role', 'niveau_acces',
-            'academie', 'direction_provinciale', 'etablissement', 'is_active'
+            'direction_provinciale', 'etablissement', 'is_active'
         ]
         widgets = {
             'cin': forms.TextInput(attrs={'class': 'form-control'}),
@@ -65,15 +65,14 @@ class UserManagementForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'role': forms.Select(attrs={'class': 'form-select'}),
             'niveau_acces': forms.Select(attrs={'class': 'form-select'}),
-            'academie': forms.Select(attrs={'class': 'form-select'}),
             'direction_provinciale': forms.Select(attrs={'class': 'form-select'}),
             'etablissement': forms.Select(attrs={'class': 'form-select'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def __init__(self, *args, **kwargs):
+        self.creator_academie = kwargs.pop('creator_academie', None)
         super().__init__(*args, **kwargs)
-        self.fields['academie'].queryset = Academie.objects.order_by('nom')
         self.fields['direction_provinciale'].queryset = DirectionProvinciale.objects.select_related('academie').order_by('nom')
         self.fields['etablissement'].queryset = Etablissement.objects.select_related('direction_provinciale').order_by('nom')
         self.fields['password1'].help_text = 'Laisser vide pour conserver le mot de passe actuel lors d’une modification.'
@@ -106,6 +105,14 @@ class UserManagementForm(forms.ModelForm):
                     validate_password(password1, self.instance)
                 except ValidationError as exc:
                     self.add_error('password1', exc)
+
+        # L'académie n'est pas choisie dans le formulaire : elle est définie
+        # automatiquement pour les comptes Académie, ou déduite de la DP / de
+        # l'établissement par la validation du modèle.
+        if cleaned_data.get('niveau_acces') == 'ACADEMIE' and not self.instance.academie_id:
+            self.instance.academie = self.creator_academie
+        elif cleaned_data.get('niveau_acces') in ('DP', 'ETABLISSEMENT'):
+            self.instance.academie = None
 
         return cleaned_data
 

@@ -165,13 +165,13 @@ def users_list(request):
 @role_required(['ADMIN'])
 def user_create(request):
     if request.method == 'POST':
-        form = UserManagementForm(request.POST)
+        form = UserManagementForm(request.POST, creator_academie=request.user.academie)
         if form.is_valid():
             form.save()
             messages.success(request, 'Utilisateur créé avec succès.')
             return redirect('users_list')
     else:
-        form = UserManagementForm()
+        form = UserManagementForm(creator_academie=request.user.academie)
 
     return render(request, 'accounts/user_form.html', {
         'form': form,
@@ -185,13 +185,13 @@ def user_create(request):
 def user_update(request, pk):
     utilisateur = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
-        form = UserManagementForm(request.POST, instance=utilisateur)
+        form = UserManagementForm(request.POST, instance=utilisateur, creator_academie=request.user.academie)
         if form.is_valid():
             form.save()
             messages.success(request, 'Utilisateur modifié avec succès.')
             return redirect('users_list')
     else:
-        form = UserManagementForm(instance=utilisateur)
+        form = UserManagementForm(instance=utilisateur, creator_academie=request.user.academie)
 
     return render(request, 'accounts/user_form.html', {
         'form': form,

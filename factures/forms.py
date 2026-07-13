@@ -2,6 +2,11 @@ from django import forms
 from .models import Facture, SaisieConsommationMensuelle, Compteur
 
 class FactureForm(forms.ModelForm):
+    fournisseur = forms.ChoiceField(
+        label='Compteur',
+        choices=Facture.FOURNISSEUR_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
     date_emission = forms.DateField(
         input_formats=['%m/%d/%Y', '%Y-%m-%d'],
         widget=forms.DateInput(attrs={'placeholder': 'mm/dd/yyyy', 'type': 'text'})
@@ -14,7 +19,7 @@ class FactureForm(forms.ModelForm):
     class Meta:
         model = Facture
         fields = [
-            'etablissement', 'compteur', 'type_facture', 'reference',
+            'etablissement', 'fournisseur', 'type_facture', 'reference',
             'numero_contrat', 'date_emission', 'date_echeance', 'montant', 'statut'
         ]
 

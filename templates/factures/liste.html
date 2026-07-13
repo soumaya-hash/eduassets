@@ -75,7 +75,7 @@
             <td>{{ facture.reference }}</td>
             <td>{{ facture.get_type_facture_display }}</td>
             <td>{{ facture.etablissement.nom }}</td>
-            <td>{% if facture.compteur %}{{ facture.compteur.libelle }}{% else %}-{% endif %}</td>
+            <td>{{ facture.get_fournisseur_display }}</td>
             <td>{{ facture.numero_contrat|default:'-' }}</td>
             <td>{{ facture.date_emission }}</td>
             <td>{{ facture.date_echeance }}</td>

@@ -112,8 +112,13 @@ class Compteur(models.Model):
         ('EAU', 'Eau'),
         ('ELECTRICITE', 'Electricite'),
     ]
+    FOURNISSEUR_CHOICES = [
+        ('AMENDIS', 'Amendis'),
+        ('SRM', 'SRM'),
+    ]
 
     etablissement = models.ForeignKey(Etablissement, on_delete=models.CASCADE, related_name='compteurs')
+    fournisseur = models.CharField(max_length=10, choices=FOURNISSEUR_CHOICES, default='AMENDIS')
     type_compteur = models.CharField(max_length=20, choices=TYPE_CHOICES)
     numero_contrat = models.CharField(max_length=100, unique=True)
     code_compteur = models.CharField(max_length=100)
@@ -130,7 +135,7 @@ class Compteur(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.etablissement} - {self.get_type_compteur_display()} - {self.libelle}"
+        return f"{self.etablissement} - {self.get_fournisseur_display()} - {self.libelle}"
 
 
 class SaisieConsommationMensuelle(models.Model):
@@ -273,6 +278,10 @@ class AlerteConsommation(models.Model):
 
 class Facture(models.Model):
     TYPE_CHOICES = [('EAU', 'Eau'), ('ELECTRICITE', 'Électricité')]
+    FOURNISSEUR_CHOICES = [
+        ('AMENDIS', 'Amendis'),
+        ('SRM', 'SRM'),
+    ]
     STATUT_CHOICES = [
         ('PAYEE', 'Payée'),
         ('EN_ATTENTE', 'En attente'),
@@ -280,6 +289,7 @@ class Facture(models.Model):
     ]
     etablissement = models.ForeignKey(Etablissement, on_delete=models.CASCADE)
     compteur = models.ForeignKey(Compteur, on_delete=models.SET_NULL, null=True, blank=True, related_name='factures')
+    fournisseur = models.CharField(max_length=10, choices=FOURNISSEUR_CHOICES, default='AMENDIS')
     type_facture = models.CharField(max_length=15, choices=TYPE_CHOICES)
     reference = models.CharField(max_length=100, unique=True)
     numero_contrat = models.CharField(max_length=100, null=True, blank=True)
