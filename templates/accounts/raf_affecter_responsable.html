@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Affecter un responsable{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="dashboard-title">Affecter le responsable consommation</h1>
+        <p class="text-muted mb-0">{{ etablissement.nom }}{% if etablissement.identifiant_unique %} — {{ etablissement.identifiant_unique }}{% endif %}</p>
+    </div>
+    <a href="{% url 'raf_etablissements' %}" class="btn btn-outline-secondary">Retour</a>
+</div>
+
+<div class="card shadow-sm"><div class="card-body">
+    {% if responsable_actuel %}<div class="alert alert-info">Responsable actuel : {{ responsable_actuel.get_full_name|default:responsable_actuel.cin }}. En cas de remplacement, son compte sera désactivé.</div>{% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="{{ form.utilisateur.id_for_label }}">{{ form.utilisateur.label }}</label>
+            {{ form.utilisateur }}
+            {% if form.utilisateur.errors %}<div class="text-danger small mt-1">{{ form.utilisateur.errors|striptags }}</div>{% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Enregistrer l’affectation</button>
+        <a href="{% url 'raf_etablissements' %}" class="btn btn-outline-secondary">Annuler</a>
+    </form>
+</div></div>
+{% endblock %}

@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from .models import Facture, Etablissement, Compteur, SaisieConsommationMensuelle, AlerteConsommation
-from .forms import FactureForm, SaisieConsommationMensuelleForm
+from .forms import CompteurForm, FactureForm, SaisieConsommationMensuelleForm
 from accounts.decorators import role_required
 from accounts.perimeter import scope_queryset, scope_etablissements_queryset, get_selected_access_level
 
@@ -20,10 +20,20 @@ def liste_factures(request):
     """
     factures = Facture.objects.select_related('etablissement', 'compteur').all().order_by('-date_emission')
     factures = scope_queryset(factures, request)
-    statut = request.GET.get('statut')
-    type_facture = request.GET.get('type_facture')
-    etablissement_id = request.GET.get('etablissement')
+    statut = request.GET.get('statut', '')
+    type_facture = request.GET.get('type_facture', '')
+    etablissement_id = request.GET.get('etablissement', '')
     recherche = request.GET.get('recherche', '').strip()
+
+    # Les formulaires de filtre peuvent envoyer la chaîne "None" lorsqu'un
+    # autre filtre n'est pas renseigné. On l'ignore au lieu de l'utiliser
+    # comme identifiant d'établissement.
+    if statut not in dict(Facture.STATUT_CHOICES):
+        statut = ''
+    if type_facture not in dict(Facture.TYPE_CHOICES):
+        type_facture = ''
+    if not etablissement_id.isdigit():
+        etablissement_id = ''
 
     if statut:
         factures = factures.filter(statut=statut)
@@ -137,6 +147,32 @@ def tableau_consumption_etablissement(request):
 
 @login_required
 @role_required(['ETAB_RESP_CONSO'])
+def ajouter_compteur_etablissement(request):
+    """Permet au responsable de créer un compteur pour son établissement."""
+    etablissement = _get_etablissement_pour_etab_user(request)
+    if not etablissement:
+        messages.error(request, 'Votre compte n’est pas encore rattaché à un établissement.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = CompteurForm(request.POST)
+        if form.is_valid():
+            compteur = form.save(commit=False)
+            compteur.etablissement = etablissement
+            compteur.save()
+            messages.success(request, 'Compteur ajouté avec succès.')
+            return redirect('tableau_consumption_etablissement')
+    else:
+        form = CompteurForm()
+
+    return render(request, 'factures/compteur_form.html', {
+        'form': form,
+        'etablissement': etablissement,
+    })
+
+
+@login_required
+@role_required(['ETAB_RESP_CONSO'])
 def saisie_consommation_liste(request):
     etablissement = _get_etablissement_pour_etab_user(request)
     if not etablissement:
@@ -160,12 +196,14 @@ def saisie_consommation_creer(request):
 
     if request.method == 'POST':
         form = SaisieConsommationMensuelleForm(request.POST, etablissement=etablissement)
+        # L'établissement doit être présent avant la validation du modèle.
+        form.instance.etablissement = etablissement
         if form.is_valid():
             saisie = form.save(commit=False)
-            saisie.etablissement = etablissement
             saisie.saisi_par = request.user
+            saisie.statut_saisie = 'VALIDEE_ETABLISSEMENT'
             saisie.save()
-            messages.success(request, 'Saisie de consommation enregistrée.')
+            messages.success(request, 'Saisie enregistrée et envoyée à la Direction Provinciale pour contrôle.')
             return redirect('saisie_consommation_liste')
     else:
         form = SaisieConsommationMensuelleForm(etablissement=etablissement)
@@ -189,8 +227,9 @@ def saisie_consommation_modifier(request, pk):
             saisie = form.save(commit=False)
             saisie.etablissement = etablissement
             saisie.saisi_par = request.user
+            saisie.statut_saisie = 'VALIDEE_ETABLISSEMENT'
             saisie.save()
-            messages.success(request, 'Saisie de consommation modifiée.')
+            messages.success(request, 'Saisie modifiée et renvoyée à la Direction Provinciale pour contrôle.')
             return redirect('saisie_consommation_liste')
     else:
         form = SaisieConsommationMensuelleForm(instance=saisie, etablissement=etablissement)

@@ -1,15 +1,20 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.views import LoginView
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import login, logout
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-import json
+from django.core.management import call_command, CommandError
+from django.db import transaction
 from django.db.models import Count, Q
+from io import StringIO
+import os
+from tempfile import NamedTemporaryFile
 
 from .decorators import role_required
-from .forms import CinAuthenticationForm, UserManagementForm
+from .forms import CinAuthenticationForm, RafImportEtablissementsForm, RafResponsableConsommationForm, UserManagementForm
 from .models import User
+from factures.models import Etablissement
 
 
 class CustomLoginView(LoginView):
@@ -26,80 +31,42 @@ class CustomLoginView(LoginView):
     def form_valid(self, form):
         user = form.get_user()
         login(self.request, user)
-        # Redirect to role selection
-        return redirect('select_role')
+        # Chaque compte possède un seul rôle et un seul périmètre. Ils sont
+        # définis par l'administrateur lors de l'affectation du compte.
+        self.request.session['selected_access_level'] = user.niveau_acces
+        self.request.session['selected_role'] = user.role
+        return redirect('dashboard')
 
 
 @login_required
 def select_role(request):
-    """Page to select the active access context for the session."""
-    if request.method == 'POST':
-        selected_level = request.POST.get('niveau_acces')
-        selected_role = request.POST.get('role')
+    """Conserve la compatibilité avec l'ancienne URL de sélection."""
+    request.session['selected_access_level'] = request.user.niveau_acces
+    request.session['selected_role'] = request.user.role
+    return redirect('dashboard')
 
-        if selected_level == 'ACADEMIE':
-            available_roles = ['ADMIN', 'RESP_FIN', 'RESP_INFO', 'RESP_AUTO']
-        elif selected_level == 'DP':
-            available_roles = ['DP_RESP_FIN', 'DP_RESP_INFO', 'DP_RESP_AUTO']
-        elif selected_level == 'ETABLISSEMENT':
-            available_roles = ['ETAB_RESP_CONSO']
-        else:
-            available_roles = []
-        
-        if selected_level in [choice[0] for choice in User.ACCESS_LEVEL_CHOICES] and selected_role in available_roles:
-            request.session['selected_access_level'] = selected_level
-            request.session['selected_role'] = selected_role
-            request.session.save()  # Explicitly save session
-            return redirect('dashboard')
-    
-    context = {
-        'roles': User.ROLE_CHOICES,
-        'access_levels': User.ACCESS_LEVEL_CHOICES,
-        'role_choices_json': json.dumps({
-            'ACADEMIE': [choice for choice in User.ROLE_CHOICES if choice[0] in User.ACADEMIE_ROLE_CODES],
-            'DP': [choice for choice in User.ROLE_CHOICES if choice[0] in User.DP_ROLE_CODES],
-            'ETABLISSEMENT': [choice for choice in User.ROLE_CHOICES if choice[0] in User.ETABLISSEMENT_ROLE_CODES],
-        }, ensure_ascii=False),
-        'selected_access_level': request.session.get('selected_access_level') or (request.user.niveau_acces if request.user.is_authenticated else None),
-        'selected_role': request.session.get('selected_role') or (request.user.role if request.user.is_authenticated else None),
-    }
-    return render(request, 'accounts/select_role.html', context)
+
+@login_required
+def change_perimeter(request):
+    """Déconnecte le compte courant avant la connexion d'un autre utilisateur."""
+    logout(request)
+    messages.info(request, 'Connectez-vous avec le CIN et le mot de passe de l’utilisateur concerné.')
+    return redirect('login')
 
 
 @login_required
 @require_http_methods(["POST"])
 def change_session_role(request):
-    """Allow changing the perimeter and role while logged in."""
-    new_level = request.POST.get('niveau_acces') or request.session.get('selected_access_level') or request.user.niveau_acces
-    new_role = request.POST.get('role')
-
-    if new_level == 'ACADEMIE':
-        available_roles = ['ADMIN', 'RESP_FIN', 'RESP_INFO', 'RESP_AUTO']
-    elif new_level == 'DP':
-        available_roles = ['DP_RESP_FIN', 'DP_RESP_INFO', 'DP_RESP_AUTO']
-    elif new_level == 'ETABLISSEMENT':
-        available_roles = ['ETAB_RESP_CONSO']
-    else:
-        available_roles = []
-    
-    if new_level in [choice[0] for choice in User.ACCESS_LEVEL_CHOICES] and new_role in available_roles:
-        request.session['selected_access_level'] = new_level
-        request.session['selected_role'] = new_role
-        request.session.save()  # Explicitly save session
-        from django.contrib import messages
-        messages.success(request, 'Contexte changé : {} / {}'.format(dict(User.ACCESS_LEVEL_CHOICES).get(new_level, new_level), dict(User.ROLE_CHOICES).get(new_role, new_role)))
-    
-    next_url = request.POST.get('next', 'dashboard')
-    return redirect(next_url)
+    """Empêche un compte de prendre le rôle d'un autre utilisateur."""
+    request.session['selected_access_level'] = request.user.niveau_acces
+    request.session['selected_role'] = request.user.role
+    return redirect(request.POST.get('next', 'dashboard'))
 
 
 @login_required
 @require_http_methods(["POST"])
 def reset_access_context(request):
-    request.session.pop('selected_role', None)
-    request.session.pop('selected_access_level', None)
-    request.session.save()
-    return redirect('select_role')
+    return redirect('change_perimeter')
 
 
 @login_required
@@ -217,4 +184,138 @@ def user_delete(request, pk):
 
     return render(request, 'accounts/user_delete.html', {
         'utilisateur': utilisateur,
+    })
+
+
+def _get_raf_academie(request):
+    if request.user.academie_id:
+        return request.user.academie
+    messages.error(request, 'Votre compte Administrateur général doit être rattaché à une académie.')
+    return None
+
+
+@login_required
+@role_required(['ADMIN'])
+def raf_etablissements(request):
+    academie = _get_raf_academie(request)
+    if academie is None:
+        return redirect('dashboard')
+
+    recherche = request.GET.get('recherche', '').strip()
+    etablissements = Etablissement.objects.filter(academie=academie).select_related(
+        'direction_provinciale', 'commune'
+    ).order_by('nom')
+    if recherche:
+        etablissements = etablissements.filter(
+            Q(nom__icontains=recherche) |
+            Q(identifiant_unique__icontains=recherche) |
+            Q(direction_provinciale__nom__icontains=recherche) |
+            Q(commune__nom__icontains=recherche)
+        )
+
+    responsables = {
+        user.etablissement_id: user
+        for user in User.objects.filter(
+            role='ETAB_RESP_CONSO', is_active=True, etablissement__in=etablissements,
+        ).select_related('etablissement')
+    }
+    for etablissement in etablissements:
+        etablissement.responsable_consommation = responsables.get(etablissement.id)
+
+    return render(request, 'accounts/raf_etablissements.html', {
+        'academie': academie,
+        'etablissements': etablissements,
+        'recherche': recherche,
+    })
+
+
+@login_required
+@role_required(['ADMIN'])
+def raf_affecter_responsable(request, pk):
+    academie = _get_raf_academie(request)
+    if academie is None:
+        return redirect('dashboard')
+
+    etablissement = get_object_or_404(Etablissement, pk=pk, academie=academie)
+    responsable_actuel = User.objects.filter(
+        role='ETAB_RESP_CONSO', is_active=True, etablissement=etablissement
+    ).first()
+
+    if request.method == 'POST':
+        form = RafResponsableConsommationForm(
+            request.POST, academie=academie, etablissement=etablissement,
+        )
+        if form.is_valid():
+            nouveau_responsable = form.cleaned_data['utilisateur']
+            with transaction.atomic():
+                if responsable_actuel and responsable_actuel.pk != nouveau_responsable.pk:
+                    responsable_actuel.is_active = False
+                    responsable_actuel.save(update_fields=['is_active'])
+
+                nouveau_responsable.role = 'ETAB_RESP_CONSO'
+                nouveau_responsable.niveau_acces = 'ETABLISSEMENT'
+                nouveau_responsable.etablissement = etablissement
+                nouveau_responsable.direction_provinciale = etablissement.direction_provinciale
+                nouveau_responsable.academie = etablissement.academie
+                nouveau_responsable.is_active = True
+                nouveau_responsable.save()
+            messages.success(request, 'Responsable consommation affecté à l’établissement.')
+            return redirect('raf_etablissements')
+    else:
+        form = RafResponsableConsommationForm(
+            academie=academie,
+            etablissement=etablissement,
+            initial={'utilisateur': responsable_actuel},
+        )
+
+    return render(request, 'accounts/raf_affecter_responsable.html', {
+        'form': form,
+        'etablissement': etablissement,
+        'responsable_actuel': responsable_actuel,
+    })
+
+
+@login_required
+@role_required(['ADMIN'])
+def raf_importer_etablissements(request):
+    academie = _get_raf_academie(request)
+    if academie is None:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = RafImportEtablissementsForm(request.POST, request.FILES, academie=academie)
+        if form.is_valid():
+            fichier = form.cleaned_data['fichier']
+            direction = form.cleaned_data['direction_provinciale']
+            temp_path = None
+            try:
+                with NamedTemporaryFile(suffix='.xlsx', delete=False) as temp_file:
+                    for chunk in fichier.chunks():
+                        temp_file.write(chunk)
+                    temp_path = temp_file.name
+
+                output = StringIO()
+                call_command(
+                    'importer_etablissements',
+                    fichier=temp_path,
+                    academie_code=academie.code,
+                    academie_nom=academie.nom,
+                    dp_code=direction.code,
+                    dp_nom=direction.nom,
+                    appliquer=True,
+                    stdout=output,
+                )
+                messages.success(request, 'Import Excel terminé. ' + output.getvalue().strip())
+                return redirect('raf_etablissements')
+            except CommandError as exc:
+                form.add_error('fichier', str(exc))
+            finally:
+                if temp_path and os.path.exists(temp_path):
+                    os.unlink(temp_path)
+    else:
+        form = RafImportEtablissementsForm(academie=academie)
+
+    return render(request, 'accounts/raf_importer_etablissements.html', {
+        'form': form,
+        'academie': academie,
     })

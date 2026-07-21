@@ -112,7 +112,8 @@
             <div class="card-body">
                 <h5 class="card-title">Factures et saisies</h5>
                 <p class="mb-2">Total factures: <strong>{{ factures_totales }}</strong></p>
-                <p class="mb-2">Montant total: <strong>{{ factures_montant_total|floatformat:2 }} DH</strong></p>
+                <p class="mb-2">Total global: <strong>{{ montant_total_general|floatformat:2 }} DH</strong></p>
+                <p class="mb-1 small text-muted">Factures : {{ total_factures_cout|floatformat:2 }} DH · Maintenances : {{ total_maintenances_cout|floatformat:2 }} DH · Missions : {{ total_missions_cout|floatformat:2 }} DH</p>
                 <p class="mb-0">Saisies enregistrées: <strong>{{ saisies_mois }}</strong> ce mois.</p>
             </div>
         </div>

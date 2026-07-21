@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 from factures.models import DirectionProvinciale, Etablissement
 
@@ -128,3 +129,44 @@ class UserManagementForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class RafResponsableConsommationForm(forms.Form):
+    utilisateur = forms.ModelChoiceField(
+        label='Responsable consommation', queryset=User.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
+    def __init__(self, *args, academie, etablissement, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['utilisateur'].queryset = User.objects.filter(
+            academie=academie,
+            is_active=True,
+        ).order_by(
+            'last_name', 'first_name', 'cin'
+        )
+
+
+class RafImportEtablissementsForm(forms.Form):
+    fichier = forms.FileField(
+        label='Fichier Excel',
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.xlsx'}),
+    )
+    direction_provinciale = forms.ModelChoiceField(
+        label='Direction provinciale', queryset=DirectionProvinciale.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
+    def __init__(self, *args, academie, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['direction_provinciale'].queryset = DirectionProvinciale.objects.filter(
+            academie=academie
+        ).order_by('nom')
+
+    def clean_fichier(self):
+        fichier = self.cleaned_data['fichier']
+        if not fichier.name.lower().endswith('.xlsx'):
+            raise forms.ValidationError('Le fichier doit être au format Excel (.xlsx).')
+        if fichier.size > 10 * 1024 * 1024:
+            raise forms.ValidationError('Le fichier ne doit pas dépasser 10 Mo.')
+        return fichier

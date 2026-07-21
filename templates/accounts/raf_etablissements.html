@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Service RAF{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="dashboard-title">Service RAF — Établissements</h1>
+        <p class="text-muted mb-0">Académie : {{ academie.nom }}</p>
+    </div>
+    <a href="{% url 'raf_importer_etablissements' %}" class="btn btn-primary">Importer un fichier Excel</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="d-flex gap-2">
+            <input type="search" name="recherche" class="form-control" value="{{ recherche }}" placeholder="Rechercher par établissement, code, DP ou commune">
+            <button type="submit" class="btn btn-outline-primary">Rechercher</button>
+            <a href="{% url 'raf_etablissements' %}" class="btn btn-outline-secondary">Réinitialiser</a>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-dark">
+                <tr><th>Code</th><th>Établissement</th><th>Direction provinciale</th><th>Commune</th><th>Responsable consommation</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for etablissement in etablissements %}
+                <tr>
+                    <td>{{ etablissement.identifiant_unique|default:'-' }}</td>
+                    <td>{{ etablissement.nom }}</td>
+                    <td>{{ etablissement.direction_provinciale.nom|default:'-' }}</td>
+                    <td>{{ etablissement.commune.nom|default:'-' }}</td>
+                    <td>{% if etablissement.responsable_consommation %}{{ etablissement.responsable_consommation.get_full_name|default:etablissement.responsable_consommation.cin }}{% else %}<span class="text-muted">Non affecté</span>{% endif %}</td>
+                    <td class="text-end"><a href="{% url 'raf_affecter_responsable' etablissement.pk %}" class="btn btn-sm btn-outline-primary">Affecter</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center">Aucun établissement trouvé.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

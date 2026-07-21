@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Importer des établissements{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h1 class="dashboard-title">Importer des établissements</h1><p class="text-muted mb-0">Académie : {{ academie.nom }}</p></div>
+    <a href="{% url 'raf_etablissements' %}" class="btn btn-outline-secondary">Retour au service RAF</a>
+</div>
+<div class="card shadow-sm"><div class="card-body">
+    <p class="text-muted">Importez un fichier Excel au format .xlsx. Les établissements existants seront mis à jour selon leur code unique, sans doublon.</p>
+    <form method="post" enctype="multipart/form-data" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-6"><label class="form-label fw-semibold" for="{{ form.direction_provinciale.id_for_label }}">{{ form.direction_provinciale.label }}</label>{{ form.direction_provinciale }}{% if form.direction_provinciale.errors %}<div class="text-danger small mt-1">{{ form.direction_provinciale.errors|striptags }}</div>{% endif %}</div>
+        <div class="col-md-6"><label class="form-label fw-semibold" for="{{ form.fichier.id_for_label }}">{{ form.fichier.label }}</label>{{ form.fichier }}{% if form.fichier.errors %}<div class="text-danger small mt-1">{{ form.fichier.errors|striptags }}</div>{% endif %}</div>
+        <div class="col-12"><button type="submit" class="btn btn-primary">Importer</button></div>
+    </form>
+</div></div>
+{% endblock %}

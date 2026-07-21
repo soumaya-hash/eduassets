@@ -190,10 +190,10 @@ class SaisieConsommationMensuelle(models.Model):
             errors['mois'] = 'Le mois doit etre compris entre 1 et 12.'
 
         if self.compteur:
-            if self.etablissement and self.etablissement_id != self.compteur.etablissement_id:
+            if self.etablissement_id and self.etablissement_id != self.compteur.etablissement_id:
                 errors['etablissement'] = 'L\'etablissement doit correspondre au compteur selectionne.'
             else:
-                self.etablissement = self.compteur.etablissement
+                self.etablissement_id = self.compteur.etablissement_id
 
         if self.nouvel_index < self.ancien_index:
             errors['nouvel_index'] = 'Le nouvel index doit etre superieur ou egal a l\'ancien index.'

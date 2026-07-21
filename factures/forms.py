@@ -44,14 +44,13 @@ class SaisieConsommationMensuelleForm(forms.ModelForm):
         model = SaisieConsommationMensuelle
         fields = [
             'compteur', 'annee', 'mois', 'ancien_index', 'nouvel_index',
-            'tarif_unitaire', 'montant_fournisseur', 'statut_saisie', 'observation'
+            'tarif_unitaire', 'montant_fournisseur', 'observation'
         ]
         widgets = {
             'ancien_index': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
             'nouvel_index': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
             'tarif_unitaire': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': 0}),
             'montant_fournisseur': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': 0}),
-            'statut_saisie': forms.Select(attrs={'class': 'form-select'}),
             'observation': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
@@ -60,3 +59,18 @@ class SaisieConsommationMensuelleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if etablissement is not None:
             self.fields['compteur'].queryset = Compteur.objects.filter(etablissement=etablissement).order_by('type_compteur', 'libelle')
+
+
+class CompteurForm(forms.ModelForm):
+    """Formulaire de création d'un compteur par son établissement."""
+
+    class Meta:
+        model = Compteur
+        fields = ['fournisseur', 'type_compteur', 'libelle', 'numero_contrat', 'code_compteur']
+        widgets = {
+            'fournisseur': forms.Select(attrs={'class': 'form-select'}),
+            'type_compteur': forms.Select(attrs={'class': 'form-select'}),
+            'libelle': forms.TextInput(attrs={'class': 'form-control'}),
+            'numero_contrat': forms.TextInput(attrs={'class': 'form-control'}),
+            'code_compteur': forms.TextInput(attrs={'class': 'form-control'}),
+        }

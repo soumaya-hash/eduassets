@@ -63,7 +63,7 @@
         <div class="container-fluid">
             <div class="d-flex align-items-center">
                 <a class="navbar-brand fw-semibold mb-0" href="{% url 'dashboard' %}">EduAssets</a>
-                <a class="btn btn-outline-light btn-sm ms-2" href="{% url 'select_role' %}">Changer de périmètre</a>
+                <a class="btn btn-outline-light btn-sm ms-2" href="{% url 'change_perimeter' %}">Changer d’utilisateur</a>
             </div>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -91,6 +91,9 @@
                             {% if selected_role == 'ADMIN' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'users_list' %}">Utilisateurs</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'raf_etablissements' %}">Service RAF</a>
                             </li>
                             {% endif %}
                             {% if selected_role == 'ETAB_RESP_CONSO' %}

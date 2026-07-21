@@ -7,6 +7,7 @@ urlpatterns = [
     path('modifier/<int:pk>/', views.modifier_facture, name='modifier_facture'),
     path('supprimer/<int:pk>/', views.supprimer_facture, name='supprimer_facture'),
     path('etablissement/', views.tableau_consumption_etablissement, name='tableau_consumption_etablissement'),
+    path('etablissement/compteurs/ajouter/', views.ajouter_compteur_etablissement, name='ajouter_compteur_etablissement'),
     path('etablissement/saisies/', views.saisie_consommation_liste, name='saisie_consommation_liste'),
     path('etablissement/saisies/ajouter/', views.saisie_consommation_creer, name='saisie_consommation_creer'),
     path('etablissement/saisies/<int:pk>/modifier/', views.saisie_consommation_modifier, name='saisie_consommation_modifier'),

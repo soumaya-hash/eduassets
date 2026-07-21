@@ -28,7 +28,18 @@ def liste_equipements(request):
     designation = request.GET.get('designation')
 
     if etat:
-        equipements = equipements.filter(etat=etat)
+        if etat == 'EN_MAINTENANCE':
+            # Un équipement est considéré en maintenance s'il a été déclaré
+            # ainsi à sa création ou s'il possède une maintenance active.
+            equipements_en_maintenance = Maintenance.objects.filter(
+                type_cible='INFORMATIQUE',
+                statut__in=['PLANIFIEE', 'EN_COURS'],
+            ).values('equipement_id')
+            equipements = equipements.filter(
+                Q(etat='EN_MAINTENANCE') | Q(pk__in=equipements_en_maintenance)
+            )
+        else:
+            equipements = equipements.filter(etat=etat)
     if recherche:
         equipements = equipements.filter(
             Q(numero_inventaire__icontains=recherche) |

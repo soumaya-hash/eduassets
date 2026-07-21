@@ -52,11 +52,13 @@
             <div class="card-body text-center">
                 <div class="stat-icon"><i class="fas fa-coins"></i></div>
                 <h4>{{ total_montant|floatformat:2 }} DH</h4>
-                <div>Montant total</div>
+                <div>Total global</div>
             </div>
         </div>
     </div>
 </div>
+
+<p class="text-muted mb-4">Factures : {{ total_factures_cout|floatformat:2 }} DH · Maintenances : {{ total_maintenances_cout|floatformat:2 }} DH · Missions : {{ total_missions_cout|floatformat:2 }} DH</p>
 
 <div class="row g-3 mb-4">
     <div class="col-lg-6">

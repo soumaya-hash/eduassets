@@ -38,12 +38,14 @@
     <div class="col-md-3">
         <div class="card text-dark bg-warning shadow-sm">
             <div class="card-body text-center">
-                <h4>{{ factures_montant_total|floatformat:2 }} DH</h4>
-                <div>Montant total</div>
+                <h4>{{ montant_total_general|floatformat:2 }} DH</h4>
+                <div>Total global</div>
             </div>
         </div>
     </div>
 </div>
+
+<p class="text-muted mb-4">Factures : {{ total_factures_cout|floatformat:2 }} DH · Maintenances : {{ total_maintenances_cout|floatformat:2 }} DH · Missions : {{ total_missions_cout|floatformat:2 }} DH</p>
 
 <div class="row g-3">
     <div class="col-lg-4">

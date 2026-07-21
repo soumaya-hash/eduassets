@@ -40,14 +40,30 @@ def build_scope_context(request):
     return context
 
 
+def calculate_total_cost(factures, maintenances, missions):
+    """Calcule le total des dépenses du périmètre affiché."""
+    factures_total = factures.aggregate(total=Sum('montant', default=0))['total'] or 0
+    maintenances_total = maintenances.aggregate(total=Sum('cout', default=0))['total'] or 0
+    missions_total = missions.aggregate(total=Sum('montant_carburant', default=0))['total'] or 0
+    return {
+        'factures': factures_total,
+        'maintenances': maintenances_total,
+        'missions': missions_total,
+        'global': factures_total + maintenances_total + missions_total,
+    }
+
 def academie_dashboard(request):
     context = build_scope_context(request)
 
     facture_queryset = scope_queryset(Facture.objects.all(), request)
     equipement_queryset = EquipementInformatique.objects.all()
     vehicule_queryset = Vehicule.objects.all()
-    maintenance_queryset = Maintenance.objects.all()
     etablissements_queryset = scope_etablissements_queryset(Etablissement.objects.all(), request)
+    maintenance_queryset = Maintenance.objects.filter(
+        Q(type_cible='INFORMATIQUE', equipement__etablissement__in=etablissements_queryset) |
+        Q(type_cible='AUTOMOBILE', vehicule__affectation__in=etablissements_queryset)
+    )
+    missions_queryset = Mission.objects.filter(vehicule__affectation__in=etablissements_queryset)
     compteurs_queryset = Compteur.objects.filter(etablissement__in=etablissements_queryset)
     alertes_queryset = scope_queryset(AlerteConsommation.objects.all(), request)
     saisies_queryset = scope_queryset(SaisieConsommationMensuelle.objects.all(), request)
@@ -79,10 +95,14 @@ def academie_dashboard(request):
         terminee_count=Count('id', filter=Q(statut='TERMINEE')),
         total_cout=Sum('cout', default=0)
     )
+    total_costs = calculate_total_cost(facture_queryset, maintenance_queryset, missions_queryset)
 
     context.update({
         'total_factures': facture_stats['total_count'],
-        'total_montant': facture_stats['total_montant'] or 0,
+        'total_montant': total_costs['global'],
+        'total_factures_cout': total_costs['factures'],
+        'total_maintenances_cout': total_costs['maintenances'],
+        'total_missions_cout': total_costs['missions'],
         'factures_payees': facture_stats['payees_count'],
         'factures_impayees': facture_stats['impayees_count'],
         'facture_chart_data': {
@@ -143,6 +163,10 @@ def dp_dashboard(request):
     carburant_queryset = ConsommationCarburant.objects.filter(vehicule__affectation__in=etablissements_queryset)
     maintenances_info_queryset = Maintenance.objects.filter(type_cible='INFORMATIQUE', equipement__etablissement__in=etablissements_queryset)
     maintenances_auto_queryset = Maintenance.objects.filter(type_cible='AUTOMOBILE', vehicule__affectation__in=etablissements_queryset)
+    maintenances_queryset = Maintenance.objects.filter(
+        Q(type_cible='INFORMATIQUE', equipement__etablissement__in=etablissements_queryset) |
+        Q(type_cible='AUTOMOBILE', vehicule__affectation__in=etablissements_queryset)
+    )
     alertes_queryset = AlerteConsommation.objects.filter(direction_provinciale=direction) if direction else AlerteConsommation.objects.none()
     current_year = timezone.localtime().year
     current_month = timezone.localtime().month
@@ -160,6 +184,7 @@ def dp_dashboard(request):
         payees_count=Count('id', filter=Q(statut='PAYEE')),
         impayees_count=Count('id', filter=Q(statut__in=['EN_ATTENTE', 'EN_RETARD']))
     )
+    total_costs = calculate_total_cost(factures_queryset, maintenances_queryset, missions_queryset)
 
     context.update({
         'dashboard_title': 'Dashboard DP',
@@ -169,6 +194,10 @@ def dp_dashboard(request):
         'factures_impayees': facture_stats['impayees_count'],
         'factures_payees': facture_stats['payees_count'],
         'factures_montant_total': facture_stats['total_montant'] or 0,
+        'montant_total_general': total_costs['global'],
+        'total_factures_cout': total_costs['factures'],
+        'total_maintenances_cout': total_costs['maintenances'],
+        'total_missions_cout': total_costs['missions'],
         'alertes_dp': alertes_queryset.count(),
         'alertes_non_traitees': alertes_queryset.filter(traitee=False).count(),
         'saisies_mois': saisies_current_month.count(),
@@ -239,6 +268,12 @@ def etablissement_dashboard(request):
         payees_count=Count('id', filter=Q(statut='PAYEE')),
         impayees_count=Count('id', filter=Q(statut__in=['EN_ATTENTE', 'EN_RETARD']))
     )
+    maintenances_queryset = Maintenance.objects.filter(
+        Q(type_cible='INFORMATIQUE', equipement__etablissement=etablissement) |
+        Q(type_cible='AUTOMOBILE', vehicule__affectation=etablissement)
+    ) if etablissement else Maintenance.objects.none()
+    missions_queryset = Mission.objects.filter(vehicule__affectation=etablissement) if etablissement else Mission.objects.none()
+    total_costs = calculate_total_cost(factures_queryset, maintenances_queryset, missions_queryset)
 
     current_year = timezone.localtime().year
     current_month = timezone.localtime().month
@@ -253,6 +288,10 @@ def etablissement_dashboard(request):
         'factures_payees': facture_stats['payees_count'],
         'factures_impayees': facture_stats['impayees_count'],
         'factures_montant_total': facture_stats['total_montant'] or 0,
+        'montant_total_general': total_costs['global'],
+        'total_factures_cout': total_costs['factures'],
+        'total_maintenances_cout': total_costs['maintenances'],
+        'total_missions_cout': total_costs['missions'],
         'saisies_total': saisies_queryset.count(),
         'saisies_mois': saisie_month.count(),
         'alertes_ouvertes': alertes_queryset.filter(traitee=False).count(),

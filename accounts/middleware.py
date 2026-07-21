@@ -1,6 +1,4 @@
 import threading
-from .perimeter import get_selected_access_level, get_allowed_role_codes_for_access_level
-
 _thread_locals = threading.local()
 
 def get_current_user():
@@ -35,19 +33,15 @@ class RoleSessionMiddleware:
         is_protected = any(request.path.startswith(p) for p in protected_paths)
         
         if not is_protected and request.user.is_authenticated:
-            selected_access_level = get_selected_access_level(request)
-            allowed_roles = get_allowed_role_codes_for_access_level(selected_access_level)
-            selected_role = request.session.get('selected_role')
-
-            if selected_role and allowed_roles and selected_role not in allowed_roles:
-                request.session.pop('selected_role', None)
-                from django.shortcuts import redirect
-                return redirect('select_role')
-
-            # If authenticated but no role selected, redirect to role selection
-            if not request.session.get('selected_role'):
-                from django.shortcuts import redirect
-                return redirect('select_role')
+            # Le contexte de la session doit toujours correspondre au compte
+            # authentifié ; il ne peut pas servir à adopter le rôle d'un tiers.
+            if (
+                request.session.get('selected_access_level') != request.user.niveau_acces
+                or request.session.get('selected_role') != request.user.role
+            ):
+                request.session['selected_access_level'] = request.user.niveau_acces
+                request.session['selected_role'] = request.user.role
+                request.session.save()
         
         response = self.get_response(request)
         return response

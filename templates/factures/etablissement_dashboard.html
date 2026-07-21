@@ -7,6 +7,7 @@
         <p class="text-muted mb-0">Espace Responsable Consommation Établissement</p>
     </div>
     <div class="d-flex gap-2">
+        <a href="{% url 'ajouter_compteur_etablissement' %}" class="btn btn-outline-primary">+ Ajouter un compteur</a>
         <a href="{% url 'saisie_consommation_creer' %}" class="btn btn-primary">+ Nouvelle saisie</a>
         <a href="{% url 'saisie_consommation_liste' %}" class="btn btn-outline-primary">Historique</a>
         <a href="{% url 'factures_etablissement' %}" class="btn btn-outline-secondary">Mes factures</a>
@@ -58,10 +59,10 @@
                     {% for compteur in compteurs %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>{{ compteur.libelle }}</span>
-                        <small>{{ compteur.get_type_compteur_display }}</small>
+                        <small>{{ compteur.get_fournisseur_display }} · {{ compteur.get_type_compteur_display }}</small>
                     </li>
                     {% empty %}
-                    <li class="list-group-item text-center">Aucun compteur</li>
+                    <li class="list-group-item text-center">Aucun compteur. Ajoutez un compteur Amendis ou SRM.</li>
                     {% endfor %}
                 </ul>
             </div>

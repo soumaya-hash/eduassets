@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 
 
 class User(AbstractUser):
@@ -138,6 +139,15 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.cin or self.username} ({self.get_role_display()})"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['etablissement'],
+                condition=Q(role='ETAB_RESP_CONSO', is_active=True, etablissement__isnull=False),
+                name='unique_responsable_conso_actif_par_etablissement',
+            ),
+        ]
 
 class LogActivite(models.Model):
     utilisateur = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
